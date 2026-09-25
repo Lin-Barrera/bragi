@@ -1,51 +1,59 @@
-import { useState } from "react";
-import reactLogo from "./assets/react.svg";
 import { invoke } from "@tauri-apps/api/core";
 import "./App.css";
+import { useEffect, useState } from 'react';
+import { check } from '@tauri-apps/plugin-updater';
+import { relaunch } from '@tauri-apps/plugin-process';
+import { HomeScreen } from './Components/Screens/HomeScreen';
+import { PlayerScreen } from "./Components/Screens/PlayerScreen";
+
+export type Playlist = {
+  id: string,
+  name: string
+}
 
 function App() {
-  const [greetMsg, setGreetMsg] = useState("");
-  const [name, setName] = useState("");
+  const [updateAvailable, setUpdateAvailable] = useState(false);
+  const [currentScreen, setCurrentScreen] = useState<"HomeScreen" | "PlayerScreen" | "SettingsScreen">("HomeScreen");
+  const [currentPlaylist, setCurrentPlaylist] = useState<Playlist>();
 
-  async function greet() {
-    // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-    setGreetMsg(await invoke("greet", { name }));
+  useEffect(() => {
+    async function checkForUpdates() {
+      try {
+        const update = await check();
+        if (update) {
+          setUpdateAvailable(true);
+          // for now, auto-install; later you might show a prompt first
+          await update.downloadAndInstall();
+          await relaunch();
+        }
+      } catch (err) {
+        console.error('Update check failed:', err);
+      }
+    }
+
+    checkForUpdates();
+  }, []); // empty dependency array = runs once, on mount
+  
+  function switchToHomeScreen(){
+    setCurrentScreen("HomeScreen");
+  }
+
+  function switchToPlayerScreen(playlist: Playlist){
+    setCurrentPlaylist(playlist);
+    setCurrentScreen("PlayerScreen");
+  }
+
+  function onSwitchToSettingsScreen(){
+    console.log("settings");
   }
 
   return (
-    <main className="container">
-      <h1>Welcome to Tauri + React</h1>
-
-      <div className="row">
-        <a href="https://vite.dev" target="_blank">
-          <img src="/vite.svg" className="logo vite" alt="Vite logo" />
-        </a>
-        <a href="https://tauri.app" target="_blank">
-          <img src="/tauri.svg" className="logo tauri" alt="Tauri logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <p>Click on the Tauri, Vite, and React logos to learn more.</p>
-
-      <form
-        className="row"
-        onSubmit={(e) => {
-          e.preventDefault();
-          greet();
-        }}
-      >
-        <input
-          id="greet-input"
-          onChange={(e) => setName(e.currentTarget.value)}
-          placeholder="Enter a name..."
-        />
-        <button type="submit">Greet</button>
-      </form>
-      <p>{greetMsg}</p>
-    </main>
-  );
+    <div className="AppContainer">
+      {currentScreen=="HomeScreen" && <HomeScreen onSwitchToPlayerScreen={switchToPlayerScreen} onSwitchToSettingsScreen={onSwitchToSettingsScreen}/>}
+      {currentScreen=="PlayerScreen" && currentPlaylist && <PlayerScreen onswitchToHomeScreen={switchToHomeScreen} playlist={currentPlaylist}/>}
+    </div>
+  );        
+  
 }
 
 export default App;
