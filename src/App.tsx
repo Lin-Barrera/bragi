@@ -5,16 +5,46 @@ import { check } from '@tauri-apps/plugin-updater';
 import { relaunch } from '@tauri-apps/plugin-process';
 import { HomeScreen } from './Components/Screens/HomeScreen';
 import { PlayerScreen } from "./Components/Screens/PlayerScreen";
+import { ensureBragiFolders, loadPlaylists, savePlaylists, loadSongs, saveSongs } from './storage';
+import type { Playlist, Song } from './types';
 
-export type Playlist = {
-  id: string,
-  name: string
-}
 
 function App() {
   const [updateAvailable, setUpdateAvailable] = useState(false);
   const [currentScreen, setCurrentScreen] = useState<"HomeScreen" | "PlayerScreen" | "SettingsScreen">("HomeScreen");
   const [currentPlaylist, setCurrentPlaylist] = useState<Playlist>();
+
+  const [playlistIndex, setPlaylistIndex] = useState(0);
+
+  const [playlists, setPlaylists] = useState<Playlist[]>([]);
+  const [songs, setSongs] = useState<Song[]>([]);
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  // load once on startup
+  useEffect(() => {
+    async function init() {
+      await ensureBragiFolders();
+      const [loadedPlaylists, loadedSongs] = await Promise.all([loadPlaylists(), loadSongs()]);
+      setPlaylists(loadedPlaylists);
+      setSongs(loadedSongs);
+      setIsLoaded(true);
+    }
+    init();
+  }, []);
+
+  // save playlists whenever they change (but not before the initial load finishes)
+  useEffect(() => {
+    if (isLoaded) {
+      savePlaylists(playlists);
+    }
+  }, [playlists, isLoaded]);
+
+  // save songs whenever they change
+  useEffect(() => {
+    if (isLoaded) {
+      saveSongs(songs);
+    }
+  }, [songs, isLoaded]);
 
   useEffect(() => {
     async function checkForUpdates() {
@@ -22,7 +52,6 @@ function App() {
         const update = await check();
         if (update) {
           setUpdateAvailable(true);
-          // for now, auto-install; later you might show a prompt first
           await update.downloadAndInstall();
           await relaunch();
         }
@@ -30,30 +59,59 @@ function App() {
         console.error('Update check failed:', err);
       }
     }
-
     checkForUpdates();
-  }, []); // empty dependency array = runs once, on mount
-  
-  function switchToHomeScreen(){
+  }, []);
+
+  function switchToHomeScreen() {
     setCurrentScreen("HomeScreen");
   }
 
-  function switchToPlayerScreen(playlist: Playlist){
+  function switchToPlayerScreen(playlist: Playlist) {
     setCurrentPlaylist(playlist);
     setCurrentScreen("PlayerScreen");
   }
 
-  function onSwitchToSettingsScreen(){
+  function onSwitchToSettingsScreen() {
     console.log("settings");
+  }
+
+  function createPlaylist(name: string) {
+    const newPlaylist: Playlist = { id: crypto.randomUUID(), name, songIds: [] };
+    // prepend so new playlists appear at the top; array order IS the position now
+    setPlaylists(prevList => [newPlaylist, ...prevList]);
+  }
+
+  function deletePlaylist(playlistToRemove: Playlist) {
+    setPlaylists(prev => prev.filter(item => item.id !== playlistToRemove.id));
+  }
+
+  function renamePlaylist(playlistToRename: Playlist, newName: string) {
+    setPlaylists(prev =>
+      prev.map(item =>
+        item.id === playlistToRename.id ? { ...item, name: newName } : item
+      )
+    );
   }
 
   return (
     <div className="AppContainer">
-      {currentScreen=="HomeScreen" && <HomeScreen onSwitchToPlayerScreen={switchToPlayerScreen} onSwitchToSettingsScreen={onSwitchToSettingsScreen}/>}
-      {currentScreen=="PlayerScreen" && currentPlaylist && <PlayerScreen onswitchToHomeScreen={switchToHomeScreen} playlist={currentPlaylist}/>}
+      {currentScreen == "HomeScreen" && (
+        <HomeScreen
+          playlists={playlists}
+          playlistIndex={playlistIndex}
+          onPlaylistIndexChange={setPlaylistIndex}
+          onCreatePlaylist={createPlaylist}
+          onDeletePlaylist={deletePlaylist}
+          onRenamePlaylist={renamePlaylist}
+          onSwitchToPlayerScreen={switchToPlayerScreen}
+          onSwitchToSettingsScreen={onSwitchToSettingsScreen}
+        />
+      )}
+      {currentScreen == "PlayerScreen" && currentPlaylist && (
+        <PlayerScreen onswitchToHomeScreen={switchToHomeScreen} playlist={currentPlaylist} />
+      )}
     </div>
-  );        
-  
+  );
 }
 
 export default App;
