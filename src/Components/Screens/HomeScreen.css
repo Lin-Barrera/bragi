@@ -8,8 +8,12 @@
 
 .bragi_title{
     color: var(--primary-accent-color);
-    font-size: 2rem;
+    font-size: 4rem;
     letter-spacing: 0.4rem;
     margin-top: 5rem;
+    margin-bottom: 5rem;
 }
 
+.playlist_list div{
+    font-size: 1.5rem;
+}

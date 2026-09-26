@@ -27,7 +27,7 @@
   -webkit-text-size-adjust: 100%;
 
   --primary-bg-color: #25252B;
-  --primary-accent-color: #19E3AB;
+  --primary-accent-color: #ffc400;
 }
 html, body, #root {
   margin: 0;
