@@ -1,5 +1,7 @@
 import "./App.css";
 import { useEffect, useState } from 'react';
+import { check } from '@tauri-apps/plugin-updater';
+import { relaunch } from '@tauri-apps/plugin-process';
 import { HomeScreen } from './Components/Screens/HomeScreen';
 import { PlayerScreen } from "./Components/Screens/PlayerScreen";
 import { ensureBragiFolders, loadPlaylists, savePlaylists, loadSongs, saveSongs } from './storage';
@@ -42,6 +44,23 @@ function App() {
     }
   }, [songs, isLoaded]);
 
+  // check for app updates once on startup
+  useEffect(() => {
+    async function checkForUpdates() {
+      try {
+        const update = await check();
+        if (update) {
+          console.log(`found update ${update.version}, downloading...`);
+          await update.downloadAndInstall();
+          await relaunch();
+        }
+      } catch (err) {
+        console.error('Update check failed:', err);
+      }
+    }
+    checkForUpdates();
+  }, []);
+
 
   function switchToHomeScreen() {
     setCurrentScreen("HomeScreen");
@@ -58,7 +77,6 @@ function App() {
 
   function createPlaylist(name: string) {
     const newPlaylist: Playlist = { id: crypto.randomUUID(), name, songIds: [] };
-    // prepend so new playlists appear at the top; array order IS the position now
     setPlaylists(prevList => [newPlaylist, ...prevList]);
   }
 
