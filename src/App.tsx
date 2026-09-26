@@ -1,8 +1,5 @@
-import { invoke } from "@tauri-apps/api/core";
 import "./App.css";
 import { useEffect, useState } from 'react';
-import { check } from '@tauri-apps/plugin-updater';
-import { relaunch } from '@tauri-apps/plugin-process';
 import { HomeScreen } from './Components/Screens/HomeScreen';
 import { PlayerScreen } from "./Components/Screens/PlayerScreen";
 import { ensureBragiFolders, loadPlaylists, savePlaylists, loadSongs, saveSongs } from './storage';
@@ -10,7 +7,6 @@ import type { Playlist, Song } from './types';
 
 
 function App() {
-  const [updateAvailable, setUpdateAvailable] = useState(false);
   const [currentScreen, setCurrentScreen] = useState<"HomeScreen" | "PlayerScreen" | "SettingsScreen">("HomeScreen");
   const [currentPlaylist, setCurrentPlaylist] = useState<Playlist>();
 
@@ -46,21 +42,6 @@ function App() {
     }
   }, [songs, isLoaded]);
 
-  useEffect(() => {
-    async function checkForUpdates() {
-      try {
-        const update = await check();
-        if (update) {
-          setUpdateAvailable(true);
-          await update.downloadAndInstall();
-          await relaunch();
-        }
-      } catch (err) {
-        console.error('Update check failed:', err);
-      }
-    }
-    checkForUpdates();
-  }, []);
 
   function switchToHomeScreen() {
     setCurrentScreen("HomeScreen");

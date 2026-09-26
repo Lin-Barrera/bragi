@@ -1,8 +1,8 @@
 import "./HomeScreen.css";
 import { PlaylistListItem } from "../Playlist_List_Item";
 import { CursorList } from "../CursorList";
-import { ensureBragiFolders, loadPlaylists, savePlaylists, loadSongs, saveSongs } from '../../storage';
-import type { Playlist, Song } from '../../types';
+//import { ensureBragiFolders, loadPlaylists, savePlaylists, loadSongs, saveSongs } from '../../storage';
+import type { Playlist } from '../../types';
 
 function HomeScreen({
   playlists,
@@ -12,7 +12,7 @@ function HomeScreen({
   onDeletePlaylist,
   onRenamePlaylist,
   onSwitchToPlayerScreen,
-  onSwitchToSettingsScreen,
+  //onSwitchToSettingsScreen,
 }: {
   playlists: Playlist[];
   playlistIndex: number;

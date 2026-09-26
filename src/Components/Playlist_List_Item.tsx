@@ -1,4 +1,4 @@
-import { Playlist } from "../App";
+import { Playlist } from "../types";
 import "./Playlist_List_Item.css";
 
 function PlaylistListItem( {playlist, selected}: {playlist: Playlist, selected: boolean} ){

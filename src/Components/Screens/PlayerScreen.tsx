@@ -1,6 +1,6 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect } from "react";
 import './PlayerScreen.css';
-import { Playlist } from "../../App";
+import { Playlist } from "../../types";
 
 function PlayerScreen({onswitchToHomeScreen, playlist}: {onswitchToHomeScreen: ()=>void,playlist: Playlist}){
 
