@@ -4,6 +4,7 @@
     align-items: center;
     padding: 1rem;
     height: 100%;
+    background-color: var(--primary-bg-color);
 }
 
 .bragi_title{
@@ -16,4 +17,21 @@
 
 .playlist_list div{
     font-size: 1.5rem;
+}
+
+.keybinds_footer{
+    display: flex;
+    flex-direction: column;
+    max-height: 13rem;
+    flex-wrap: wrap;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    padding-bottom: 0.5rem;
+    font-size: 1rem;
+    color: grey;
+}
+
+.keybind_label{
+    margin: 0rem 3rem 0rem 1rem;
 }
