@@ -6,7 +6,7 @@ import { PaletteColorPicker } from "../PaletteColorPicker";
 
 function SettingsScreen({onswitchToHomeScreen}: {onswitchToHomeScreen: ()=>void}){
     
-    const [categories, setCategories] = useState(["Theme", "Accessibility"]);
+    const categories = ["Theme", "Accessibility"];
     const [categoryIndex, setCategoryIndex] = useState(0);
 
     const [accentColor, setAccentColor] = useState(getComputedStyle(document.documentElement).getPropertyValue("--primary-accent-color"));

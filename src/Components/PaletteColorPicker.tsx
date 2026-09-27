@@ -1,11 +1,6 @@
 import { useState, useEffect } from 'react';
 import './PaletteColorPicker.css';
 
-
-const PALETTE = [
-    "#ff0000", "#fc7100", "#ffbb00", "#07d300", "#00ff9d", "#1640ff", "#ad009f", "#ff10eb", "#bdbdbd",
-];
-
 function isValidHex(value: string): boolean {
     return /^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/.test(value);
 }
