@@ -28,7 +28,7 @@
   --primary-bg-color: #25252B;
   --secondary-bg-color: #1c1c20;
   --primary-accent-color: #ffc400;
-  --text-color: #0f0f0f;
+  --text-color: #ffffff;
 }
 html, body, #root {
   margin: 0;
