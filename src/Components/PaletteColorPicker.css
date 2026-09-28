@@ -1,0 +1,51 @@
+/* PaletteColorPicker.css */
+.palette_picker {
+    display: flex;
+    flex-direction: row;
+    gap: 12px;
+    padding: 12px;
+    background-color: #8585851f;
+    border-radius: 4px;
+    width: fit-content;
+}
+
+.palette_swatch_grid {
+    display: grid;
+    grid-template-columns: repeat(9, 1fr);
+    gap: 6px;
+}
+
+.palette_swatch {
+    width: 32px;
+    height: 32px;
+    border-radius: 4px;
+    border: 1px solid #e4e4e4;
+    cursor: pointer;
+    padding: 0;
+}
+
+.palette_swatch_selected {
+    border: 3px solid #e4e4e4;
+}
+
+.palette_hex_row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background-color: #d8d8d8;
+    border-radius: 4px;
+    padding: 4px 8px;
+}
+
+.palette_hex_label {
+    color: #888;
+    font-family: Pixelify Sans;
+}
+
+.palette_hex_input {
+    border: none;
+    background: transparent;
+    outline: none;
+    font-family: Pixelify Sans;
+    width: 4rem;
+}

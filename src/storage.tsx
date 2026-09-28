@@ -1,6 +1,6 @@
 import { readTextFile, writeTextFile, exists, mkdir } from '@tauri-apps/plugin-fs';
 import { homeDir, join } from '@tauri-apps/api/path';
-import type { Playlist, Song } from './types';
+import type { Playlist, Song } from './types_and_functions';
 
 async function getBragiDir() {
   const home = await homeDir();

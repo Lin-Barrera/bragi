@@ -4,8 +4,9 @@ import { check } from '@tauri-apps/plugin-updater';
 import { relaunch } from '@tauri-apps/plugin-process';
 import { HomeScreen } from './Components/Screens/HomeScreen';
 import { PlayerScreen } from "./Components/Screens/PlayerScreen";
+import { SettingsScreen } from "./Components/Screens/SettingsScreen";
 import { ensureBragiFolders, loadPlaylists, savePlaylists, loadSongs, saveSongs } from './storage';
-import type { Playlist, Song } from './types';
+import type { Playlist, Song } from './types_and_functions';
 
 
 function App() {
@@ -62,6 +63,20 @@ function App() {
   }, []);
 
 
+  function movePlaylist(playlistToMove: Playlist, direction: "up" | "down") {
+    setPlaylists(prev => {
+      const index = prev.findIndex(p => p.id === playlistToMove.id);
+      if (index === -1) return prev;
+
+      const targetIndex = direction === "up" ? index - 1 : index + 1;
+      if (targetIndex < 0 || targetIndex >= prev.length) return prev;
+
+      const updated = [...prev];
+      [updated[index], updated[targetIndex]] = [updated[targetIndex], updated[index]];
+      return updated;
+    });
+  }
+
   function switchToHomeScreen() {
     setCurrentScreen("HomeScreen");
   }
@@ -72,7 +87,7 @@ function App() {
   }
 
   function onSwitchToSettingsScreen() {
-    console.log("settings");
+    setCurrentScreen("SettingsScreen");
   }
 
   function createPlaylist(name: string) {
@@ -102,12 +117,16 @@ function App() {
           onCreatePlaylist={createPlaylist}
           onDeletePlaylist={deletePlaylist}
           onRenamePlaylist={renamePlaylist}
+          onMovePlaylist={movePlaylist}
           onSwitchToPlayerScreen={switchToPlayerScreen}
           onSwitchToSettingsScreen={onSwitchToSettingsScreen}
         />
       )}
       {currentScreen == "PlayerScreen" && currentPlaylist && (
         <PlayerScreen onswitchToHomeScreen={switchToHomeScreen} playlist={currentPlaylist} />
+      )}
+      {currentScreen == "SettingsScreen" && (
+        <SettingsScreen onswitchToHomeScreen={switchToHomeScreen}/>
       )}
     </div>
   );
