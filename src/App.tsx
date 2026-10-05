@@ -1,19 +1,19 @@
+// App.tsx
 import "./App.css";
 import { useEffect, useState } from 'react';
 import { check } from '@tauri-apps/plugin-updater';
 import { relaunch } from '@tauri-apps/plugin-process';
 import { HomeScreen } from './Components/Screens/HomeScreen';
-import { PlayerScreen } from "./Components/Screens/PlayerScreen";
-import { SettingsScreen } from "./Components/Screens/SettingsScreen";
+import { SettingsScreen } from './Components/Screens/SettingsScreen';
 import { ensureBragiFolders, loadPlaylists, savePlaylists, loadSongs, saveSongs } from './storage';
 import type { Playlist, Song } from './types_and_functions';
 
 
 function App() {
-  const [currentScreen, setCurrentScreen] = useState<"HomeScreen" | "PlayerScreen" | "SettingsScreen">("HomeScreen");
-  const [currentPlaylist, setCurrentPlaylist] = useState<Playlist>();
+  const [currentScreen, setCurrentScreen] = useState<"HomeScreen" | "SettingsScreen">("HomeScreen");
 
   const [playlistIndex, setPlaylistIndex] = useState(0);
+  const [songIndex, setSongIndex] = useState(0);
 
   const [playlists, setPlaylists] = useState<Playlist[]>([]);
   const [songs, setSongs] = useState<Song[]>([]);
@@ -63,27 +63,8 @@ function App() {
   }, []);
 
 
-  function movePlaylist(playlistToMove: Playlist, direction: "up" | "down") {
-    setPlaylists(prev => {
-      const index = prev.findIndex(p => p.id === playlistToMove.id);
-      if (index === -1) return prev;
-
-      const targetIndex = direction === "up" ? index - 1 : index + 1;
-      if (targetIndex < 0 || targetIndex >= prev.length) return prev;
-
-      const updated = [...prev];
-      [updated[index], updated[targetIndex]] = [updated[targetIndex], updated[index]];
-      return updated;
-    });
-  }
-
   function switchToHomeScreen() {
     setCurrentScreen("HomeScreen");
-  }
-
-  function switchToPlayerScreen(playlist: Playlist) {
-    setCurrentPlaylist(playlist);
-    setCurrentScreen("PlayerScreen");
   }
 
   function onSwitchToSettingsScreen() {
@@ -107,6 +88,20 @@ function App() {
     );
   }
 
+  function movePlaylist(playlistToMove: Playlist, direction: "up" | "down") {
+    setPlaylists(prev => {
+      const index = prev.findIndex(p => p.id === playlistToMove.id);
+      if (index === -1) return prev;
+
+      const targetIndex = direction === "up" ? index - 1 : index + 1;
+      if (targetIndex < 0 || targetIndex >= prev.length) return prev;
+
+      const updated = [...prev];
+      [updated[index], updated[targetIndex]] = [updated[targetIndex], updated[index]];
+      return updated;
+    });
+  }
+
   return (
     <div className="AppContainer">
       {currentScreen == "HomeScreen" && (
@@ -118,15 +113,14 @@ function App() {
           onDeletePlaylist={deletePlaylist}
           onRenamePlaylist={renamePlaylist}
           onMovePlaylist={movePlaylist}
-          onSwitchToPlayerScreen={switchToPlayerScreen}
+          songs={songs}
+          songIndex={songIndex}
+          onSongIndexChange={setSongIndex}
           onSwitchToSettingsScreen={onSwitchToSettingsScreen}
         />
       )}
-      {currentScreen == "PlayerScreen" && currentPlaylist && (
-        <PlayerScreen onswitchToHomeScreen={switchToHomeScreen} playlist={currentPlaylist} />
-      )}
       {currentScreen == "SettingsScreen" && (
-        <SettingsScreen onswitchToHomeScreen={switchToHomeScreen}/>
+        <SettingsScreen onswitchToHomeScreen={switchToHomeScreen} />
       )}
     </div>
   );

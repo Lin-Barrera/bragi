@@ -17,7 +17,7 @@ function PlayerScreen({onswitchToHomeScreen, playlist}: {onswitchToHomeScreen: (
     })
 
     return (
-        <div>Current playlist: {playlist.name}</div>
+        <div className="player_screen_container">Current playlist: {playlist.name}</div>
     )
 }
 

@@ -70,7 +70,7 @@ h1 {
   font-weight: 500;
   font-family: inherit;
   color: var(--text-color);
-  background-color: #ffffff;
+  background-color: #00000077;
   transition: border-color 0.25s;
   box-shadow: 0 2px 2px rgba(0, 0, 0, 0.2);
 }

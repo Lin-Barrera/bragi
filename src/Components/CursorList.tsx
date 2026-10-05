@@ -14,6 +14,7 @@ interface CursorListProps<T>{
     onRename?: (item: T, newName: string) => void;
     onReorder?: (item: T, direction: "up" | "down") => void;
     onModeChange?: (mode: "idle" | "creating" | "renaming") => void;
+    enabled?: boolean;
 }
 
 function CursorList<T>({
@@ -29,6 +30,7 @@ function CursorList<T>({
     onRename,
     onReorder,
     onModeChange,
+    enabled = true,
 }: CursorListProps<T>){
     const rowRefs = useRef<(HTMLDivElement | null)[]>([]);
     const [cursorTop, setCursorTop] = useState(0);
@@ -49,7 +51,16 @@ function CursorList<T>({
     }, [mode]);
 
     useEffect(() => {
+        const selectedRow = rowRefs.current[selectedIndex];
+        if (selectedRow) {
+            selectedRow.scrollIntoView({ block: "nearest" });
+        }
+    }, [selectedIndex, items]);
+
+    useEffect(() => {
         function handleKeyDown(event: KeyboardEvent) {
+            if (!enabled) return;
+
             if (mode !== "idle") {
                 if (event.key === "Enter") {
                     const trimmed = textInput.trim();
@@ -64,7 +75,6 @@ function CursorList<T>({
                 return;
             }
 
-            // shift+arrow reorder — checked before plain arrow navigation
             if (event.shiftKey && event.code === "ArrowUp" && onReorder && selectedIndex > 0) {
                 event.preventDefault();
                 onReorder(items[selectedIndex], "up");
@@ -94,8 +104,9 @@ function CursorList<T>({
 
         window.addEventListener("keydown", handleKeyDown);
         return () => window.removeEventListener("keydown", handleKeyDown);
-    }, [mode, items, selectedIndex, textInput, onSelectedIndexChange, onActivate, onRename, onDelete, onCreate, onReorder]);
+    }, [enabled, mode, items, selectedIndex, textInput, onSelectedIndexChange, onActivate, onRename, onDelete, onCreate, onReorder]);
 
+    const cursorOpacity = items.length === 0 ? '0%' : enabled ? '100%' : '35%';
 
     return(
         <div className={`${className} cursor_list_wrapper`}>
@@ -109,24 +120,25 @@ function CursorList<T>({
                 />
             </div>)}
 
-            <div className="cursor_list_inner">
-                <div
-                    className="cursor"
-                    style={{ transform: `translateY(${cursorTop}px)`, opacity: `${items.length>0?'100%':'0%'}` }}
-                >{'>'}</div>
+            <div className="cursor_list_scroll">
+                <div className="cursor_list_inner">
+                    <div
+                        className="cursor"
+                        style={{ transform: `translateY(${cursorTop}px)`, opacity: cursorOpacity }}
+                    >{'>'}</div>
 
-                <div className="cursor_list">
-                    {items.map((item, index) => (
-                        <div 
-                        className="rendered_item"
-                        ref={(el) => { rowRefs.current[index] = el; }} 
-                        key={keyExtractor(item)}>
-                            {renderItem(item, index === selectedIndex)}
-                        </div>
-                    ))}
+                    <div className="cursor_list">
+                        {items.map((item, index) => (
+                            <div
+                            className="rendered_item"
+                            ref={(el) => { rowRefs.current[index] = el; }}
+                            key={keyExtractor(item)}>
+                                {renderItem(item, index === selectedIndex)}
+                            </div>
+                        ))}
+                    </div>
                 </div>
             </div>
-
         </div>
     )
 }
