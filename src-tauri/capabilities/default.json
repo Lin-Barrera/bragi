@@ -8,10 +8,12 @@
     "opener:default",
     "updater:default",
     "process:default",
+    "dialog:allow-open",
     "fs:allow-read-text-file",
     "fs:allow-write-text-file",
     "fs:allow-mkdir",
     "fs:allow-exists",
+    "fs:allow-copy-file",
     {
       "identifier": "fs:scope",
       "allow": [

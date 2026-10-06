@@ -102,6 +102,18 @@ function App() {
     });
   }
 
+  function addSongs(newSongs: Song[], targetPlaylist: Playlist) {
+    setSongs(prev => [...prev, ...newSongs]);
+    setPlaylists(prev =>
+      prev.map(p =>
+        p.id === targetPlaylist.id
+          ? { ...p, songIds: [...p.songIds, ...newSongs.map(s => s.id)] }
+          : p
+      )
+    );
+    console.log(songs);
+  }
+
   return (
     <div className="AppContainer">
       {currentScreen == "HomeScreen" && (
@@ -117,6 +129,7 @@ function App() {
           songIndex={songIndex}
           onSongIndexChange={setSongIndex}
           onSwitchToSettingsScreen={onSwitchToSettingsScreen}
+          onAddSongs={addSongs}
         />
       )}
       {currentScreen == "SettingsScreen" && (

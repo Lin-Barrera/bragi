@@ -9,12 +9,16 @@
 
 .bragi_title{
     color: var(--primary-accent-color);
+    background-color: var(--tertiary-bg-color);
     font-size: 4rem;
     letter-spacing: 0.4rem;
-    margin-top: 1rem;
-    margin-bottom: 2rem;
-    margin-left: 2rem;
-    line-height: 4rem;
+    margin-top: 0rem;
+    margin-bottom: 1rem;
+    margin-left: 0rem;
+    line-height: 6rem;
+    padding-left: 2rem;
+    letter-spacing: 0.5rem;
+    width: 100%;
 }
 
 .horizontal_panels .playlist_list {
@@ -38,6 +42,7 @@
     align-items: stretch;
     flex: 1;
     min-height: 0;
+    width: 100%;
 }
 
 .panel {
@@ -50,11 +55,19 @@
 }
 
 .panel:first-child{
-    background-color: var(--secondary-bg-color);
+    background-color: var(--tertiary-bg-color);
+    width: 25rem;
 }
 .panel:nth-child(2){
-    background-color: var(--primary-bg-color);
+    background-color: var(--secondary-bg-color);
     border: 5px var(--secondary-bg-color) solid;
+    max-width: 30rem;
+}
+
+.main_player{
+    background-color: var(--primary-bg-color);
+    flex: 1;
+    min-width: 30rem;
 }
 
 .panel_placeholder {

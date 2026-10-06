@@ -4,14 +4,24 @@ import { useEffect, useState } from "react";
 import { PlaylistListItem } from "../Playlist_List_Item";
 import { CursorList } from "../CursorList";
 import type { Playlist, Song } from '../../types_and_functions';
+import { open } from '@tauri-apps/plugin-dialog';
+import { copyFile } from '@tauri-apps/plugin-fs';
+import { join } from '@tauri-apps/api/path';
+import { getBragiDir } from '../../storage';
 
 type FocusColumn = "playlists" | "songs";
 
 function SongListItem({ song, selected }: { song: Song; selected: boolean }) {
   return (
-    <div style={{ color: selected ? "var(--primary-accent-color)" : "white" }}>
-      {song.name} — {song.artist}
+    <div>
+      <div style={{ color: selected ? "var(--primary-accent-color)" : "white" }}>
+        {song.name}
+      </div>
+      <div style={{ color: "grey"}}>
+        {song.artist}
+        </div>
     </div>
+    
   );
 }
 
@@ -27,6 +37,7 @@ function HomeScreen({
   songIndex,
   onSongIndexChange,
   onSwitchToSettingsScreen,
+  onAddSongs,
 }: {
   playlists: Playlist[];
   playlistIndex: number;
@@ -39,12 +50,16 @@ function HomeScreen({
   songIndex: number;
   onSongIndexChange: (index: number) => void;
   onSwitchToSettingsScreen: () => void;
+  onAddSongs: (newSongs: Song[], targetPlaylist: Playlist) => void;
 }) {
 
   const [focusedColumn, setFocusedColumn] = useState<FocusColumn>("playlists");
   const [playlistsMode, setPlaylistsMode] = useState<"idle" | "creating" | "renaming">("idle");
   const [songsMode, setSongsMode] = useState<"idle" | "creating" | "renaming">("idle");
-  const [viewedPlaylist, setViewedPlaylist] = useState<Playlist | null>(null);
+
+  const [viewedPlaylistId, setViewedPlaylistId] = useState<string | null>(null);
+
+  const viewedPlaylist = playlists.find(p => p.id === viewedPlaylistId) ?? null;
 
   const isTyping = playlistsMode !== "idle" || songsMode !== "idle";
 
@@ -55,15 +70,45 @@ function HomeScreen({
     : [];
 
   useEffect(() => {
-    if (viewedPlaylist && !playlists.some(p => p.id === viewedPlaylist.id)) {
-      setViewedPlaylist(null);
+    if (viewedPlaylistId && !playlists.some(p => p.id === viewedPlaylistId)) {
+      setViewedPlaylistId(null);
     }
-  }, [playlists, viewedPlaylist]);
+  }, [playlists, viewedPlaylistId]);
 
   function activatePlaylist(playlist: Playlist) {
-    setViewedPlaylist(playlist);
+    setViewedPlaylistId(playlist.id);
     onSongIndexChange(0);
     setFocusedColumn("songs");
+}
+
+  async function importSongs() {
+    if (!viewedPlaylist) return;
+
+    const selected = await open({
+      multiple: true,
+      filters: [{ name: 'Audio', extensions: ['mp3'] }],
+    });
+
+    if (!selected) return; // user cancelled
+    const paths = Array.isArray(selected) ? selected : [selected];
+
+    const newSongs: Song[] = [];
+    for (const sourcePath of paths) {
+      const id = crypto.randomUUID();
+      const bragiDir = await getBragiDir();
+      const destPath = await join(bragiDir, 'songs', `${id}.mp3`);
+      await copyFile(sourcePath, destPath);
+
+      const fileName = sourcePath.split(/[\\/]/).pop() ?? 'Unknown';
+      newSongs.push({
+        id,
+        path: `${id}.mp3`,
+        name: fileName.replace(/\.mp3$/i, ''),
+        artist: 'Unknown Artist',
+      });
+    }
+
+    onAddSongs(newSongs, viewedPlaylist);
   }
 
   useEffect(() => {
@@ -76,6 +121,8 @@ function HomeScreen({
         setFocusedColumn(prev => (prev === "songs" ? "playlists" : prev));
       } else if (event.key === "s") {
         onSwitchToSettingsScreen();
+      } else if (event.key === "a" && viewedPlaylist){
+        importSongs();
       }
     }
 
@@ -135,10 +182,22 @@ function HomeScreen({
               enabled={focusedColumn === "songs"}
             />
           )}
+
+
+          {viewedPlaylist && (
+            <div className="keybinds_footer">
+              <div className="keybind_label">a: add song</div>
+              <div className="keybind_label">r: rename song</div>
+              <div className="keybind_label">x: delete song</div>
+              <div className="keybind_label">c: add song to other playlist</div>
+            </div>
+          )}
+        </div>
+
+        <div className="panel main_player">
+
         </div>
       </div>
-
-      
     </div>
   );
 }
