@@ -10,8 +10,9 @@ function SettingsScreen({onswitchToHomeScreen}: {onswitchToHomeScreen: ()=>void}
     const [categoryIndex, setCategoryIndex] = useState(0);
 
     const [accentColor, setAccentColor] = useState(getComputedStyle(document.documentElement).getPropertyValue("--primary-accent-color"));
-    const [primaryBGColor, setprimaryBGColor] = useState(getComputedStyle(document.documentElement).getPropertyValue("--primary-bg-color"));
-    const [secondaryBGColor, setsecondaryBGColor] = useState(getComputedStyle(document.documentElement).getPropertyValue("--secondary-bg-color"));
+    const [primaryBGColor, setPrimaryBGColor] = useState(getComputedStyle(document.documentElement).getPropertyValue("--primary-bg-color"));
+    const [secondaryBGColor, setSecondaryBGColor] = useState(getComputedStyle(document.documentElement).getPropertyValue("--secondary-bg-color"));
+    const [tertiaryBGColor, setTertiaryBGColor] = useState(getComputedStyle(document.documentElement).getPropertyValue("--tertiary-bg-color"));
     const [textColor, setTextColor] = useState(getComputedStyle(document.documentElement).getPropertyValue("--text-color"));
 
     useEffect(() => {
@@ -35,6 +36,9 @@ function SettingsScreen({onswitchToHomeScreen}: {onswitchToHomeScreen: ()=>void}
     useEffect(() => {
         document.documentElement.style.setProperty('--secondary-bg-color', secondaryBGColor);
     }, [secondaryBGColor]);
+    useEffect(() => {
+        document.documentElement.style.setProperty('--tertiary-bg-color', tertiaryBGColor);
+    }, [tertiaryBGColor]);
     useEffect(() => {
         document.documentElement.style.setProperty('--text-color', textColor);
     }, [textColor]);
@@ -69,9 +73,9 @@ function SettingsScreen({onswitchToHomeScreen}: {onswitchToHomeScreen: ()=>void}
                     <div className="setting_label">Primary background color</div>
                     <PaletteColorPicker
                         color={primaryBGColor}
-                        onChangeComplete={(color) => setprimaryBGColor(color.hex)}
+                        onChangeComplete={(color) => setPrimaryBGColor(color.hex)}
                         palette={[
-                            "#25252B", "#2b2b38", "#303044", "#343452",
+                            "#25252B", "#25252B", "#25252B", "#25252B",
                             "#ececec", "#d0d0ee", "#e6d7c3", "#cfcfcf",
                         ]}
                     />
@@ -81,9 +85,21 @@ function SettingsScreen({onswitchToHomeScreen}: {onswitchToHomeScreen: ()=>void}
                     <div className="setting_label">Secondary background color</div>
                     <PaletteColorPicker
                         color={secondaryBGColor}
-                        onChangeComplete={(color) => setsecondaryBGColor(color.hex)}
+                        onChangeComplete={(color) => setSecondaryBGColor(color.hex)}
                         palette={[
-                            "#17171c", "#1d1d25", "#242433", "#28283e",
+                            "#1c1c20", "#1c1c20", "#1c1c20", "#1c1c20",
+                            "#c7c7c7", "#bcbce7", "#dcc8ac", "#bfbfbf",
+                        ]}
+                    />
+                </div>
+
+                <div className="setting">
+                    <div className="setting_label">Tertiary background color</div>
+                    <PaletteColorPicker
+                        color={tertiaryBGColor}
+                        onChangeComplete={(color) => setTertiaryBGColor(color.hex)}
+                        palette={[
+                            "#141418", "#141418", "#141418", "#141418",
                             "#c7c7c7", "#bcbce7", "#dcc8ac", "#bfbfbf",
                         ]}
                     />

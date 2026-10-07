@@ -114,6 +114,55 @@ function App() {
     console.log(songs);
   }
 
+  function renameSong(songToRename: Song, newName: string) {
+    setSongs(prev =>
+      prev.map(s => (s.id === songToRename.id ? { ...s, name: newName } : s))
+    );
+  }
+
+  function removeSongFromPlaylist(song: Song, playlist: Playlist) {
+    const updatedPlaylists = playlists.map(p =>
+      p.id === playlist.id
+        ? { ...p, songIds: p.songIds.filter(id => id !== song.id) }
+        : p
+    );
+    setPlaylists(updatedPlaylists);
+
+    // if no playlist references this song anymore, drop the Song record too
+    const stillUsed = updatedPlaylists.some(p => p.songIds.includes(song.id));
+    if (!stillUsed) {
+      setSongs(prev => prev.filter(s => s.id !== song.id));
+    }
+  }
+
+  function moveSong(song: Song, playlist: Playlist, direction: "up" | "down") {
+    setPlaylists(prev =>
+      prev.map(p => {
+        if (p.id !== playlist.id) return p;
+
+        const index = p.songIds.indexOf(song.id);
+        if (index === -1) return p;
+
+        const targetIndex = direction === "up" ? index - 1 : index + 1;
+        if (targetIndex < 0 || targetIndex >= p.songIds.length) return p;
+
+        const updated = [...p.songIds];
+        [updated[index], updated[targetIndex]] = [updated[targetIndex], updated[index]];
+        return { ...p, songIds: updated };
+      })
+    );
+  }
+
+  function copySongToPlaylist(song: Song, targetPlaylist: Playlist) {
+    setPlaylists(prev =>
+      prev.map(p =>
+        p.id === targetPlaylist.id && !p.songIds.includes(song.id)
+          ? { ...p, songIds: [...p.songIds, song.id] }
+          : p
+      )
+    );
+  }
+
   return (
     <div className="AppContainer">
       {currentScreen == "HomeScreen" && (
@@ -130,6 +179,10 @@ function App() {
           onSongIndexChange={setSongIndex}
           onSwitchToSettingsScreen={onSwitchToSettingsScreen}
           onAddSongs={addSongs}
+          onRenameSong={renameSong}
+          onRemoveSong={removeSongFromPlaylist}
+          onMoveSong={moveSong}
+          onCopySong={copySongToPlaylist}
         />
       )}
       {currentScreen == "SettingsScreen" && (

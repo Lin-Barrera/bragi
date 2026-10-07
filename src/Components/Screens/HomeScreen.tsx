@@ -9,7 +9,7 @@ import { copyFile } from '@tauri-apps/plugin-fs';
 import { join } from '@tauri-apps/api/path';
 import { getBragiDir } from '../../storage';
 
-type FocusColumn = "playlists" | "songs";
+type FocusColumn = "playlists" | "songs" | "player";
 
 function SongListItem({ song, selected }: { song: Song; selected: boolean }) {
   return (
@@ -38,6 +38,10 @@ function HomeScreen({
   onSongIndexChange,
   onSwitchToSettingsScreen,
   onAddSongs,
+  onRenameSong,
+  onRemoveSong,
+  onMoveSong,
+  onCopySong,
 }: {
   playlists: Playlist[];
   playlistIndex: number;
@@ -51,29 +55,39 @@ function HomeScreen({
   onSongIndexChange: (index: number) => void;
   onSwitchToSettingsScreen: () => void;
   onAddSongs: (newSongs: Song[], targetPlaylist: Playlist) => void;
+  onRenameSong: (song: Song, newName: string) => void;
+  onRemoveSong: (song: Song, playlist: Playlist) => void;
+  onMoveSong: (song: Song, playlist: Playlist, direction: "up" | "down") => void;
+  onCopySong: (song: Song, targetPlaylist: Playlist) => void;
 }) {
 
   const [focusedColumn, setFocusedColumn] = useState<FocusColumn>("playlists");
   const [playlistsMode, setPlaylistsMode] = useState<"idle" | "creating" | "renaming">("idle");
   const [songsMode, setSongsMode] = useState<"idle" | "creating" | "renaming">("idle");
-
   const [viewedPlaylistId, setViewedPlaylistId] = useState<string | null>(null);
-
   const viewedPlaylist = playlists.find(p => p.id === viewedPlaylistId) ?? null;
-
   const isTyping = playlistsMode !== "idle" || songsMode !== "idle";
-
   const viewedSongs: Song[] = viewedPlaylist
     ? viewedPlaylist.songIds
         .map(id => songs.find(s => s.id === id))
         .filter((s): s is Song => s !== undefined)
     : [];
+  const [copyingSong, setCopyingSong] = useState<Song | null>(null);
+  const [copyTargetIndex, setCopyTargetIndex] = useState(0);
+  const selectedSong: Song | undefined = viewedSongs[songIndex];
+  const otherPlaylists = playlists.filter(p => p.id !== viewedPlaylistId);
 
   useEffect(() => {
     if (viewedPlaylistId && !playlists.some(p => p.id === viewedPlaylistId)) {
       setViewedPlaylistId(null);
     }
   }, [playlists, viewedPlaylistId]);
+
+  useEffect(() => {
+    if (songIndex > 0 && songIndex >= viewedSongs.length) {
+      onSongIndexChange(Math.max(0, viewedSongs.length - 1));
+    }
+  }, [viewedSongs.length]);
 
   function activatePlaylist(playlist: Playlist) {
     setViewedPlaylistId(playlist.id);
@@ -113,29 +127,36 @@ function HomeScreen({
 
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
+      if (copyingSong) {
+        if (event.key === "Escape") setCopyingSong(null);
+        return;
+      }
       if (isTyping) return;
 
       if (event.code === "ArrowRight" && viewedPlaylist) {
-        setFocusedColumn(prev => (prev === "playlists" ? "songs" : prev));
+        setFocusedColumn(prev => (prev === "playlists" ? "songs" : prev === "songs" ? "player" : prev));
       } else if (event.code === "ArrowLeft") {
-        setFocusedColumn(prev => (prev === "songs" ? "playlists" : prev));
+        setFocusedColumn(prev => (prev === "player" ? "songs" : prev === "songs" ? "playlists" : prev));
       } else if (event.key === "s") {
         onSwitchToSettingsScreen();
       } else if (event.key === "a" && viewedPlaylist){
         importSongs();
+      } else if (event.key === "c" && focusedColumn === "songs" && selectedSong && otherPlaylists.length > 0) {
+        setCopyTargetIndex(0);
+        setCopyingSong(selectedSong);
       }
     }
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isTyping, viewedPlaylist, onSwitchToSettingsScreen]);
+  }, [isTyping, viewedPlaylist, onSwitchToSettingsScreen, copyingSong, focusedColumn, selectedSong, otherPlaylists.length]);
 
   return (
     <div className="home_screen_container">
       <div className="bragi_title">Bragi</div>
 
       <div className="horizontal_panels">
-        <div className="panel">
+        <div className="panel" style={{borderTop: focusedColumn==="playlists" ? "0.2rem solid var(--primary-accent-color)" : "0.2rem solid transparent"}}>
           <CursorList
             className="playlist_list"
             items={playlists}
@@ -165,7 +186,7 @@ function HomeScreen({
           </div>
         </div>
 
-        <div className="panel">
+        {viewedPlaylistId && (<div className="panel song_panel" style={{borderTop: focusedColumn==="songs" ? "0.2rem solid var(--primary-accent-color)" : "0.2rem solid transparent"}}>
           {!viewedPlaylist ? (
             <div className="panel_placeholder">Select a playlist and press Enter</div>
           ) : viewedSongs.length === 0 ? (
@@ -179,7 +200,10 @@ function HomeScreen({
               selectedIndex={songIndex}
               onSelectedIndexChange={onSongIndexChange}
               onModeChange={setSongsMode}
-              enabled={focusedColumn === "songs"}
+              enabled={focusedColumn === "songs" && !copyingSong}
+              onRename={onRenameSong}
+              onDelete={(song) => onRemoveSong(song, viewedPlaylist)}
+              onReorder={(song, direction) => onMoveSong(song, viewedPlaylist, direction)}
             />
           )}
 
@@ -190,14 +214,35 @@ function HomeScreen({
               <div className="keybind_label">r: rename song</div>
               <div className="keybind_label">x: delete song</div>
               <div className="keybind_label">c: add song to other playlist</div>
+              <div className="keybind_label">Shift + ↓↑: move songs</div>
             </div>
           )}
-        </div>
+        </div>)}
 
-        <div className="panel main_player">
+        <div className="panel main_player" style={{borderTop: focusedColumn==="player" ? "0.2rem solid var(--primary-accent-color)" : "0.2rem solid transparent"}}>
 
         </div>
       </div>
+
+      {copyingSong && (
+        <div className="copy_picker_overlay">
+          <div className="copy_picker">
+            <div className="copy_picker_title">Add {copyingSong.name} to:</div>
+            <CursorList
+              className="playlist_list"
+              items={otherPlaylists}
+              keyExtractor={(p) => p.id}
+              renderItem={(p, isSelected) => <PlaylistListItem playlist={p} selected={isSelected} />}
+              selectedIndex={copyTargetIndex}
+              onSelectedIndexChange={setCopyTargetIndex}
+              onActivate={(target) => {
+                onCopySong(copyingSong, target);
+                setCopyingSong(null);
+              }}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
