@@ -8,6 +8,7 @@ import { open } from '@tauri-apps/plugin-dialog';
 import { copyFile } from '@tauri-apps/plugin-fs';
 import { join } from '@tauri-apps/api/path';
 import { getBragiDir } from '../../storage';
+import type { Player } from '../../usePlayer';
 
 type FocusColumn = "playlists" | "songs" | "player";
 
@@ -24,6 +25,24 @@ function SongListItem({ song, selected }: { song: Song; selected: boolean }) {
     
   );
 }
+
+function PlayerButton({ label, onClick, active = false }: {
+    label: string;
+    onClick: () => void;
+    active?: boolean;
+  }) {
+    return (
+      <button
+        className="app_button"
+        tabIndex={-1}
+        onMouseDown={(e) => e.preventDefault()}
+        onClick={onClick}
+        style={{ color: active ? "var(--primary-accent-color)" : "var(--text-color)" }}
+      >
+        {label}
+      </button>
+    );
+  }
 
 function HomeScreen({
   playlists,
@@ -42,6 +61,7 @@ function HomeScreen({
   onRemoveSong,
   onMoveSong,
   onCopySong,
+  player,
 }: {
   playlists: Playlist[];
   playlistIndex: number;
@@ -59,6 +79,7 @@ function HomeScreen({
   onRemoveSong: (song: Song, playlist: Playlist) => void;
   onMoveSong: (song: Song, playlist: Playlist, direction: "up" | "down") => void;
   onCopySong: (song: Song, targetPlaylist: Playlist) => void;
+  player: Player;
 }) {
 
   const [focusedColumn, setFocusedColumn] = useState<FocusColumn>("playlists");
@@ -204,6 +225,7 @@ function HomeScreen({
               onRename={onRenameSong}
               onDelete={(song) => onRemoveSong(song, viewedPlaylist)}
               onReorder={(song, direction) => onMoveSong(song, viewedPlaylist, direction)}
+              onActivate={(song) => player.playSong(song, viewedPlaylist)}
             />
           )}
 
@@ -220,7 +242,24 @@ function HomeScreen({
         </div>)}
 
         <div className="panel main_player" style={{borderTop: focusedColumn==="player" ? "0.2rem solid var(--primary-accent-color)" : "0.2rem solid transparent"}}>
+          <div className="now_playing">
+            {player.currentSong ? (
+              <>
+                <div style={{ color: "var(--primary-accent-color)" }}>{player.currentSong.name}</div>
+                <div style={{ color: "grey" }}>{player.currentSong.artist}</div>
+              </>
+            ) : (
+              <div style={{ color: "grey" }}>Nothing playing</div>
+            )}
+          </div>
 
+          <div className="player_controls">
+            <PlayerButton label="Prev" onClick={player.previous} />
+            <PlayerButton label={player.isPlaying ? "Pause" : "Play"} onClick={player.togglePlay} />
+            <PlayerButton label="Next" onClick={player.next} />
+            <PlayerButton label="Loop" active={player.loop} onClick={player.toggleLoop} />
+            <PlayerButton label="Shuffle" active={player.shuffle} onClick={player.toggleShuffle} />
+          </div>
         </div>
       </div>
 

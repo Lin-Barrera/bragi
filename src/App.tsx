@@ -7,6 +7,7 @@ import { HomeScreen } from './Components/Screens/HomeScreen';
 import { SettingsScreen } from './Components/Screens/SettingsScreen';
 import { ensureBragiFolders, loadPlaylists, savePlaylists, loadSongs, saveSongs } from './storage';
 import type { Playlist, Song } from './types_and_functions';
+import { usePlayer } from './usePlayer';
 
 
 function App() {
@@ -18,6 +19,8 @@ function App() {
   const [playlists, setPlaylists] = useState<Playlist[]>([]);
   const [songs, setSongs] = useState<Song[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
+
+  const player = usePlayer(songs);
 
   // load once on startup
   useEffect(() => {
@@ -61,6 +64,28 @@ function App() {
     }
     checkForUpdates();
   }, []);
+
+  useEffect(() => {
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.target instanceof HTMLInputElement) return;
+
+      if (event.code === "Space") {
+        event.preventDefault();
+        player.togglePlay();
+      } else if (event.shiftKey && event.code === "KeyN") {
+        player.next();
+      } else if (event.shiftKey && event.code === "KeyP") {
+        player.previous();
+      } else if (event.key === "o") {
+        player.toggleLoop();
+      } else if (event.key === "z") {
+        player.toggleShuffle();
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [player]);
 
 
   function switchToHomeScreen() {
@@ -183,6 +208,7 @@ function App() {
           onRemoveSong={removeSongFromPlaylist}
           onMoveSong={moveSong}
           onCopySong={copySongToPlaylist}
+          player={player}
         />
       )}
       {currentScreen == "SettingsScreen" && (

@@ -136,3 +136,10 @@
     margin-bottom: 1rem;
     color: var(--primary-accent-color);
 }
+
+.player_controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
