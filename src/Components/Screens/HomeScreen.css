@@ -142,4 +142,20 @@
     flex-wrap: wrap;
     gap: 0.5rem;
     margin-top: 1rem;
+    justify-content: center;
+}
+
+.player_controls .app_button:nth-child(3){
+    width: 6rem;
+}
+.player_controls .app_button:nth-child(5){
+    margin-right: 3rem;
+}
+
+.player_song_name{
+    color: var(--primary-accent-color);
+    font-size: 1.5rem;
+}
+.player_artist_name{
+    color: grey;
 }

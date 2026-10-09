@@ -9,6 +9,8 @@ import { copyFile } from '@tauri-apps/plugin-fs';
 import { join } from '@tauri-apps/api/path';
 import { getBragiDir } from '../../storage';
 import type { Player } from '../../usePlayer';
+import { ProgressBar } from "../ProgressBar";
+import { Visualizer } from "../Visualizer";
 
 type FocusColumn = "playlists" | "songs" | "player";
 
@@ -242,23 +244,41 @@ function HomeScreen({
         </div>)}
 
         <div className="panel main_player" style={{borderTop: focusedColumn==="player" ? "0.2rem solid var(--primary-accent-color)" : "0.2rem solid transparent"}}>
-          <div className="now_playing">
-            {player.currentSong ? (
-              <>
-                <div style={{ color: "var(--primary-accent-color)" }}>{player.currentSong.name}</div>
-                <div style={{ color: "grey" }}>{player.currentSong.artist}</div>
-              </>
-            ) : (
-              <div style={{ color: "grey" }}>Nothing playing</div>
-            )}
+          <Visualizer />
+          
+          <div>
+            <div className="now_playing">
+              {player.currentSong ? (
+                <>
+                  <div className="player_song_name">{player.currentSong.name}</div>
+                  <div className="player_artist_name">{player.currentSong.artist}</div>
+                </>
+              ) : (
+                <div style={{ color: "grey" }}>Nothing playing</div>
+              )}
+            </div>
+
+            <ProgressBar/>
+
+            <div className="player_controls">
+              <PlayerButton label="Prev" onClick={player.previous} />
+              <PlayerButton label="-10s" onClick={() => player.seekBy(-10)} />
+              <PlayerButton label={player.isPlaying ? "Pause" : "Play"} onClick={player.togglePlay} />
+              <PlayerButton label="+10s" onClick={() => player.seekBy(10)} />
+              <PlayerButton label="Next" onClick={player.next} />
+              <PlayerButton label="Loop" active={player.loop} onClick={player.toggleLoop} />
+              <PlayerButton label="Shuffle" active={player.shuffle} onClick={player.toggleShuffle} />
+            </div>
           </div>
 
-          <div className="player_controls">
-            <PlayerButton label="Prev" onClick={player.previous} />
-            <PlayerButton label={player.isPlaying ? "Pause" : "Play"} onClick={player.togglePlay} />
-            <PlayerButton label="Next" onClick={player.next} />
-            <PlayerButton label="Loop" active={player.loop} onClick={player.toggleLoop} />
-            <PlayerButton label="Shuffle" active={player.shuffle} onClick={player.toggleShuffle} />
+          
+
+          <div className="keybinds_footer" style={{ marginTop: "auto" }}>
+            <div className="keybind_label">Space: play / pause</div>
+            <div className="keybind_label">j / l: back / forward 10s</div>
+            <div className="keybind_label">Shift + N / P: next / previous</div>
+            <div className="keybind_label">o: loop song</div>
+            <div className="keybind_label">z: shuffle</div>
           </div>
         </div>
       </div>

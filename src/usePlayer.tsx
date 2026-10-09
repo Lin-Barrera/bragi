@@ -7,6 +7,44 @@ import type { Playlist, Song } from './types_and_functions';
 // One audio element for the whole app, created once at module level.
 const audio = new Audio();
 
+type AudioGraph = {
+  ctx: AudioContext;
+  source: MediaElementAudioSourceNode;
+  analyser: AnalyserNode;
+};
+
+let graph: AudioGraph | null = null;
+
+// Built lazily, on the first song. `createMediaElementSource` can only ever be
+// called once per audio element, so this must never run twice.
+function ensureAudioGraph(): AudioGraph {
+  if (graph) return graph;
+
+  const ctx = new AudioContext();
+  const source = ctx.createMediaElementSource(audio);
+  const analyser = ctx.createAnalyser();
+  analyser.fftSize = 4096;               // 2048 frequency bins
+  analyser.smoothingTimeConstant = 0.8;  // 0 = jittery, 1 = barely moves
+
+  source.connect(analyser);
+  analyser.connect(ctx.destination);
+
+  graph = { ctx, source, analyser };
+  return graph;
+}
+
+// the visualizer polls this every frame; null until the first song starts
+function getAnalyser(): AnalyserNode | null {
+  return graph?.analyser ?? null;
+}
+
+// browsers can leave an AudioContext "suspended" until a user gesture
+function resumeContext() {
+  if (graph && graph.ctx.state === "suspended") {
+    graph.ctx.resume();
+  }
+}
+
 type Queue = {
   base: string[];    // song ids in the playlist's own order (snapshot)
   order: string[];   // the order actually being played: same as base, or a shuffled copy
@@ -50,6 +88,8 @@ function usePlayer(songs: Song[]) {
 
   async function loadAndPlay(song: Song) {
     const myLoadId = ++loadIdRef.current;
+    ensureAudioGraph();
+    resumeContext();
     try {
       const bragiDir = await getBragiDir();
       const filePath = await join(bragiDir, 'songs', song.path);
@@ -130,8 +170,15 @@ function usePlayer(songs: Song[]) {
 
   function togglePlay() {
     if (!audio.src) return; // nothing loaded yet
+    resumeContext();
     if (audio.paused) audio.play();
     else audio.pause();
+  }
+
+  function seekBy(seconds: number) {
+    if (!audio.src) return;
+    const target = audio.currentTime + seconds;
+    audio.currentTime = Math.min(Math.max(0, target), audio.duration || 0);
   }
 
   // the audio element loops a single song natively (and then never fires 'ended')
@@ -165,10 +212,42 @@ function usePlayer(songs: Song[]) {
     previous,
     toggleLoop: () => setLoop(l => !l),
     toggleShuffle,
+    seekBy,
   };
+}
+
+function useAudioTime() {
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+
+  useEffect(() => {
+    const onTime = () => setCurrentTime(audio.currentTime);
+    const onDuration = () =>
+      setDuration(Number.isFinite(audio.duration) ? audio.duration : 0);
+    const onEmptied = () => {
+      setCurrentTime(0);
+      setDuration(0);
+    };
+
+    audio.addEventListener('timeupdate', onTime);
+    audio.addEventListener('durationchange', onDuration);
+    audio.addEventListener('emptied', onEmptied);
+
+    // sync right away: this component remounts when you come back from Settings
+    onTime();
+    onDuration();
+
+    return () => {
+      audio.removeEventListener('timeupdate', onTime);
+      audio.removeEventListener('durationchange', onDuration);
+      audio.removeEventListener('emptied', onEmptied);
+    };
+  }, []);
+
+  return { currentTime, duration };
 }
 
 type Player = ReturnType<typeof usePlayer>;
 
-export { usePlayer };
+export { usePlayer, useAudioTime, getAnalyser };
 export type { Player };

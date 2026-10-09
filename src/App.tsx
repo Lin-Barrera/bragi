@@ -80,6 +80,10 @@ function App() {
         player.toggleLoop();
       } else if (event.key === "z") {
         player.toggleShuffle();
+      } else if (event.key === "j"){
+        player.seekBy(-10);
+      } else if (event.key === "l") {
+        player.seekBy(10);
       }
     }
 
