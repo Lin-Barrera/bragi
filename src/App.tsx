@@ -15,6 +15,7 @@ function App() {
 
   const [playlistIndex, setPlaylistIndex] = useState(0);
   const [songIndex, setSongIndex] = useState(0);
+  const [viewedPlaylistId, setViewedPlaylistId] = useState<string | null>(null);
 
   const [playlists, setPlaylists] = useState<Playlist[]>([]);
   const [songs, setSongs] = useState<Song[]>([]);
@@ -149,6 +150,12 @@ function App() {
     );
   }
 
+  function renameArtist(songToUpdate: Song, newArtist: string) {
+    setSongs(prev =>
+      prev.map(s => (s.id === songToUpdate.id ? { ...s, artist: newArtist } : s))
+    );
+  }
+
   function removeSongFromPlaylist(song: Song, playlist: Playlist) {
     const updatedPlaylists = playlists.map(p =>
       p.id === playlist.id
@@ -199,6 +206,8 @@ function App() {
           playlists={playlists}
           playlistIndex={playlistIndex}
           onPlaylistIndexChange={setPlaylistIndex}
+          viewedPlaylistId={viewedPlaylistId}
+          onViewedPlaylistIdChange={setViewedPlaylistId}
           onCreatePlaylist={createPlaylist}
           onDeletePlaylist={deletePlaylist}
           onRenamePlaylist={renamePlaylist}
@@ -209,6 +218,7 @@ function App() {
           onSwitchToSettingsScreen={onSwitchToSettingsScreen}
           onAddSongs={addSongs}
           onRenameSong={renameSong}
+          onRenameArtist={renameArtist}
           onRemoveSong={removeSongFromPlaylist}
           onMoveSong={moveSong}
           onCopySong={copySongToPlaylist}

@@ -35,7 +35,7 @@ function Visualizer({ barCount = 32 }: { barCount?: number }) {
     if (!canvas || !g) return;
 
     // read once: changing the theme happens in Settings, which unmounts this component
-    const color = getCssVariable("--primary-accent-color");
+    const color = getCssVariable("--visualizer-accent-color");
     const segmentCount = Math.floor(CANVAS_HEIGHT / SEGMENT_HEIGHT);
 
     let data = new Uint8Array(0);   // reused every frame, never reallocated

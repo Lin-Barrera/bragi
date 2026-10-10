@@ -2,6 +2,5 @@
     display: block;
     width: 100%;
     height: auto;              /* keeps the canvas's own aspect ratio */
-    margin-top: 1.5rem;
     image-rendering: pixelated; /* crisp blocks instead of blurry scaling */
 }

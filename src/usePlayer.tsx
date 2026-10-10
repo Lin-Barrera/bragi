@@ -70,6 +70,7 @@ function usePlayer(songs: Song[]) {
   const currentId: string | undefined = queue.order[queue.position];
   const currentSong = songs.find(s => s.id === currentId) ?? null;
   const [isPlaying, setIsPlaying] = useState(false);
+  const [hasPlayed, setHasPlayed] = useState(false);
 
   const objectUrlRef = useRef<string | null>(null);
   const loadIdRef = useRef(0);
@@ -109,6 +110,7 @@ function usePlayer(songs: Song[]) {
   }
 
   function playSong(song: Song, playlist: Playlist) {
+    setHasPlayed(true);
     const base = [...playlist.songIds];
     const order = shuffle ? shuffled(base, song.id) : base;
     const position = shuffle ? 0 : base.indexOf(song.id);
@@ -213,6 +215,7 @@ function usePlayer(songs: Song[]) {
     toggleLoop: () => setLoop(l => !l),
     toggleShuffle,
     seekBy,
+    hasPlayed,
   };
 }
 

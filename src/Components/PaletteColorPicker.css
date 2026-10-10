@@ -4,14 +4,14 @@
     flex-direction: row;
     gap: 12px;
     padding: 12px;
-    background-color: #8585851f;
+    background-color: var(--tertiary-bg-color);
     border-radius: 4px;
     width: fit-content;
 }
 
 .palette_swatch_grid {
     display: grid;
-    grid-template-columns: repeat(9, 1fr);
+    /* grid-template-columns is set inline, from the palette size */
     gap: 6px;
 }
 
@@ -29,16 +29,22 @@
 }
 
 .palette_hex_row {
+    position: relative;   /* anchor for the popover */
     display: flex;
     align-items: center;
     gap: 6px;
-    background-color: #d8d8d8;
+    background-color: var(--primary-bg-color);
     border-radius: 4px;
     padding: 4px 8px;
+    cursor: pointer;
+}
+
+.palette_hex_row_open {
+    z-index: 12;   /* lifts the whole row (field, label, padding) above the click-catcher layer */
 }
 
 .palette_hex_label {
-    color: #888;
+    color: var(--text-color);
     font-family: Pixelify Sans;
 }
 
@@ -48,4 +54,29 @@
     outline: none;
     font-family: Pixelify Sans;
     width: 4rem;
+    color: var(--text-color);
+}
+
+.palette_popover_cover {
+    position: fixed;
+    inset: 0;
+    z-index: 10;
+}
+
+.palette_popover {
+    position: absolute;
+    z-index: 11;
+    top: calc(100% + 0.5rem);
+    right: 0;             /* lines up with the field's right edge, grows to the left */
+    border: var(--primary-bg-color) solid 1rem;
+    box-shadow: 0 0 5rem 2rem var(--tertiary-bg-color);
+}
+
+.palette_popover_up {
+    top: auto;
+    bottom: calc(100% + 0.5rem);
+}
+
+.palette_popover .chrome-picker > div:nth-child(2) > div:last-child {
+    display: none !important;   /* the library sets display inline, so !important is needed */
 }

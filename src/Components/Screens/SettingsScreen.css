@@ -5,6 +5,8 @@
 }
 
 .side_panel{
+    --list-accent-color: var(--settings-side-accent-color);
+
     background-color: var(--tertiary-bg-color);
     padding: 2rem;
     font-size: 1.2rem;
@@ -16,29 +18,53 @@
 }
 
 .main_settings_panel{
-    display: flex;
-    flex-direction: column;
+    --settings-column-gap: 4rem;   /* ← THE knob: space between the labels and the pickers */
+
+    flex: 1;
+    min-width: 0;                  /* lets the panel shrink with the window */
+    overflow: auto;                /* scrolls instead of breaking when too small */
     background-color: var(--secondary-bg-color);
+    padding: 2rem 5rem;
+}
+
+.theme_settings_container {
+    display: table;
     width: 100%;
-    padding: 2rem 2rem 2rem 0;
+    border-spacing: 0;
 }
 
-.setting{
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-    gap: 1rem;
-    width: 50%;
-    padding: 1rem 0 1rem 3rem;
+.setting {
+    display: table-row;
 }
 
-.setting:nth-child(odd){
+.setting:nth-child(odd) {
     background-color: var(--primary-bg-color);
 }
 
-.setting .setting_label{
-    height: 100%;
-    line-height: 3rem;
-    min-width: fit-content;
+.setting_label,
+.setting_control {
+    display: table-cell;
+    vertical-align: middle;
+    padding: 0.5rem 0;
+    white-space: nowrap;
+}
+
+.setting_label {
+    padding-left: 2rem;
+    text-align: left;
+}
+
+.setting_control {
+    padding-left: var(--settings-column-gap);
+}
+
+/* swallows all the leftover width, so the two columns above stay as narrow as their content */
+.setting_filler {
+    display: table-cell;
+    width: 100%;
+}
+
+/* every picker hugs the right edge of its column, whatever its width */
+.setting_control .palette_picker {
+    margin-left: auto;
 }

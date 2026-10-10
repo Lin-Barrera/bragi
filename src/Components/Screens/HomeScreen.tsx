@@ -11,20 +11,25 @@ import { getBragiDir } from '../../storage';
 import type { Player } from '../../usePlayer';
 import { ProgressBar } from "../ProgressBar";
 import { Visualizer } from "../Visualizer";
+import { EditableLabel } from "../EditableLabel";
+import type { ItemEditor } from "../CursorList";
 
 type FocusColumn = "playlists" | "songs" | "player";
 
-function SongListItem({ song, selected }: { song: Song; selected: boolean }) {
+function SongListItem({ song, selected, editor }: {
+  song: Song;
+  selected: boolean;
+  editor?: ItemEditor;
+}) {
   return (
     <div>
-      <div style={{ color: selected ? "var(--primary-accent-color)" : "white" }}>
-        {song.name}
+      <div style={{ color: selected ? "var(--songs-accent-color)" : "var(--text-color)" }}>
+        <EditableLabel value={song.name} field="name" editor={editor} />
       </div>
-      <div style={{ color: "grey"}}>
-        {song.artist}
-        </div>
+      <div style={{ color: "grey" }}>
+        <EditableLabel value={song.artist} field="artist" editor={editor} />
+      </div>
     </div>
-    
   );
 }
 
@@ -39,7 +44,7 @@ function PlayerButton({ label, onClick, active = false }: {
         tabIndex={-1}
         onMouseDown={(e) => e.preventDefault()}
         onClick={onClick}
-        style={{ color: active ? "var(--primary-accent-color)" : "var(--text-color)" }}
+        style={{ color: active ? "var(--buttons-accent-color)" : "var(--text-color)" }}
       >
         {label}
       </button>
@@ -50,6 +55,8 @@ function HomeScreen({
   playlists,
   playlistIndex,
   onPlaylistIndexChange,
+  viewedPlaylistId,
+  onViewedPlaylistIdChange,
   onCreatePlaylist,
   onDeletePlaylist,
   onRenamePlaylist,
@@ -60,6 +67,7 @@ function HomeScreen({
   onSwitchToSettingsScreen,
   onAddSongs,
   onRenameSong,
+  onRenameArtist,
   onRemoveSong,
   onMoveSong,
   onCopySong,
@@ -68,6 +76,8 @@ function HomeScreen({
   playlists: Playlist[];
   playlistIndex: number;
   onPlaylistIndexChange: (index: number) => void;
+  viewedPlaylistId: string | null;
+  onViewedPlaylistIdChange: (id: string | null) => void;
   onCreatePlaylist: (name: string) => void;
   onDeletePlaylist: (playlist: Playlist) => void;
   onRenamePlaylist: (playlist: Playlist, newName: string) => void;
@@ -78,6 +88,7 @@ function HomeScreen({
   onSwitchToSettingsScreen: () => void;
   onAddSongs: (newSongs: Song[], targetPlaylist: Playlist) => void;
   onRenameSong: (song: Song, newName: string) => void;
+  onRenameArtist: (song: Song, newArtist: string) => void;
   onRemoveSong: (song: Song, playlist: Playlist) => void;
   onMoveSong: (song: Song, playlist: Playlist, direction: "up" | "down") => void;
   onCopySong: (song: Song, targetPlaylist: Playlist) => void;
@@ -87,7 +98,6 @@ function HomeScreen({
   const [focusedColumn, setFocusedColumn] = useState<FocusColumn>("playlists");
   const [playlistsMode, setPlaylistsMode] = useState<"idle" | "creating" | "renaming">("idle");
   const [songsMode, setSongsMode] = useState<"idle" | "creating" | "renaming">("idle");
-  const [viewedPlaylistId, setViewedPlaylistId] = useState<string | null>(null);
   const viewedPlaylist = playlists.find(p => p.id === viewedPlaylistId) ?? null;
   const isTyping = playlistsMode !== "idle" || songsMode !== "idle";
   const viewedSongs: Song[] = viewedPlaylist
@@ -95,6 +105,8 @@ function HomeScreen({
         .map(id => songs.find(s => s.id === id))
         .filter((s): s is Song => s !== undefined)
     : [];
+  const playingSongId = player.currentSong?.id ?? null;
+  const playingSongIsListed = viewedSongs.some(s => s.id === playingSongId);
   const [copyingSong, setCopyingSong] = useState<Song | null>(null);
   const [copyTargetIndex, setCopyTargetIndex] = useState(0);
   const selectedSong: Song | undefined = viewedSongs[songIndex];
@@ -102,7 +114,7 @@ function HomeScreen({
 
   useEffect(() => {
     if (viewedPlaylistId && !playlists.some(p => p.id === viewedPlaylistId)) {
-      setViewedPlaylistId(null);
+      onViewedPlaylistIdChange(null);
     }
   }, [playlists, viewedPlaylistId]);
 
@@ -113,7 +125,7 @@ function HomeScreen({
   }, [viewedSongs.length]);
 
   function activatePlaylist(playlist: Playlist) {
-    setViewedPlaylistId(playlist.id);
+    onViewedPlaylistIdChange(playlist.id);
     onSongIndexChange(0);
     setFocusedColumn("songs");
 }
@@ -157,7 +169,11 @@ function HomeScreen({
       if (isTyping) return;
 
       if (event.code === "ArrowRight" && viewedPlaylist) {
-        setFocusedColumn(prev => (prev === "playlists" ? "songs" : prev === "songs" ? "player" : prev));
+        setFocusedColumn(prev =>
+          prev === "playlists" ? "songs"
+          : prev === "songs" && player.hasPlayed ? "player"
+          : prev
+        );
       } else if (event.code === "ArrowLeft") {
         setFocusedColumn(prev => (prev === "player" ? "songs" : prev === "songs" ? "playlists" : prev));
       } else if (event.key === "s") {
@@ -172,24 +188,30 @@ function HomeScreen({
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isTyping, viewedPlaylist, onSwitchToSettingsScreen, copyingSong, focusedColumn, selectedSong, otherPlaylists.length]);
+  }, [isTyping, viewedPlaylist, onSwitchToSettingsScreen, copyingSong, focusedColumn, selectedSong, otherPlaylists.length, player.hasPlayed]);
 
   return (
     <div className="home_screen_container">
       <div className="bragi_title">Bragi</div>
 
       <div className="horizontal_panels">
-        <div className="panel" style={{borderTop: focusedColumn==="playlists" ? "0.2rem solid var(--primary-accent-color)" : "0.2rem solid transparent"}}>
+        <div className="panel playlist_panel" style={{borderTop: focusedColumn==="playlists" ? "0.2rem solid var(--playlist-accent-color)" : "0.2rem solid transparent"}}>
           <CursorList
             className="playlist_list"
             items={playlists}
             keyExtractor={(p) => p.id}
-            renderItem={(p, isSelected) => <PlaylistListItem playlist={p} selected={isSelected} />}
+            renderItem={(p, isSelected, editor) => (
+              <PlaylistListItem
+                playlist={p}
+                selected={viewedPlaylist ? p.id === viewedPlaylist.id : isSelected}
+                editor={editor}
+              />
+            )}
             selectedIndex={playlistIndex}
             onSelectedIndexChange={onPlaylistIndexChange}
             onCreate={onCreatePlaylist}
             onDelete={onDeletePlaylist}
-            onRename={onRenamePlaylist}
+            editableFields={[{ id: "name", key: "r", onCommit: onRenamePlaylist }]}
             onReorder={onMovePlaylist}
             onModeChange={setPlaylistsMode}
             onActivate={activatePlaylist}
@@ -209,7 +231,7 @@ function HomeScreen({
           </div>
         </div>
 
-        {viewedPlaylistId && (<div className="panel song_panel" style={{borderTop: focusedColumn==="songs" ? "0.2rem solid var(--primary-accent-color)" : "0.2rem solid transparent"}}>
+        {viewedPlaylistId && (<div className="panel song_panel" style={{borderTop: focusedColumn==="songs" ? "0.2rem solid var(--songs-accent-color)" : "0.2rem solid transparent"}}>
           {!viewedPlaylist ? (
             <div className="panel_placeholder">Select a playlist and press Enter</div>
           ) : viewedSongs.length === 0 ? (
@@ -219,12 +241,21 @@ function HomeScreen({
               className="playlist_list"
               items={viewedSongs}
               keyExtractor={(s) => s.id}
-              renderItem={(s, isSelected) => <SongListItem song={s} selected={isSelected} />}
+              renderItem={(s, isSelected, editor) => (
+                <SongListItem
+                  song={s}
+                  selected={playingSongIsListed ? s.id === playingSongId : isSelected}
+                  editor={editor}
+                />
+              )}
               selectedIndex={songIndex}
               onSelectedIndexChange={onSongIndexChange}
               onModeChange={setSongsMode}
               enabled={focusedColumn === "songs" && !copyingSong}
-              onRename={onRenameSong}
+              editableFields={[
+                { id: "name", key: "r", onCommit: onRenameSong },
+                { id: "artist", key: "e", onCommit: onRenameArtist },
+              ]}
               onDelete={(song) => onRemoveSong(song, viewedPlaylist)}
               onReorder={(song, direction) => onMoveSong(song, viewedPlaylist, direction)}
               onActivate={(song) => player.playSong(song, viewedPlaylist)}
@@ -236,6 +267,7 @@ function HomeScreen({
             <div className="keybinds_footer">
               <div className="keybind_label">a: add song</div>
               <div className="keybind_label">r: rename song</div>
+              <div className="keybind_label">e: rename artist</div>
               <div className="keybind_label">x: delete song</div>
               <div className="keybind_label">c: add song to other playlist</div>
               <div className="keybind_label">Shift + ↓↑: move songs</div>
@@ -243,10 +275,12 @@ function HomeScreen({
           )}
         </div>)}
 
-        <div className="panel main_player" style={{borderTop: focusedColumn==="player" ? "0.2rem solid var(--primary-accent-color)" : "0.2rem solid transparent"}}>
-          <Visualizer />
-          
-          <div>
+        {player.hasPlayed && (<div className="panel main_player" style={{borderTop: focusedColumn==="player" ? "0.2rem solid var(--song-name-accent-color)" : "0.2rem solid transparent"}}>
+          <div className="visualizer_area">
+            <Visualizer />
+          </div>
+
+          <div className="player_group">
             <div className="now_playing">
               {player.currentSong ? (
                 <>
@@ -271,16 +305,14 @@ function HomeScreen({
             </div>
           </div>
 
-          
-
-          <div className="keybinds_footer" style={{ marginTop: "auto" }}>
+          <div className="keybinds_footer">
             <div className="keybind_label">Space: play / pause</div>
             <div className="keybind_label">j / l: back / forward 10s</div>
             <div className="keybind_label">Shift + N / P: next / previous</div>
             <div className="keybind_label">o: loop song</div>
             <div className="keybind_label">z: shuffle</div>
           </div>
-        </div>
+        </div>)}
       </div>
 
       {copyingSong && (

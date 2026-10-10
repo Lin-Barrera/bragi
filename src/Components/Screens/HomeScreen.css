@@ -8,7 +8,7 @@
 }
 
 .bragi_title{
-    color: var(--primary-accent-color);
+    color: var(--title-accent-color);
     background-color: var(--tertiary-bg-color);
     font-size: 4rem;
     letter-spacing: 0.4rem;
@@ -63,6 +63,15 @@
     max-width: 30rem;
 }
 
+/* each panel tells the cursor lists inside it which color to use for the ">" and the scrollbar */
+.playlist_panel,
+.copy_picker {
+    --list-accent-color: var(--playlist-accent-color);
+}
+.song_panel {
+    --list-accent-color: var(--songs-accent-color);
+}
+
 .main_player{
     background-color: var(--primary-bg-color);
     flex: 1;
@@ -91,6 +100,10 @@
     flex: 1;
     min-height: 0;
     margin-bottom: 1rem;
+}
+
+.playlist_list input{
+    background-color: var(--primary-bg-color);
 }
 
 .home_screen_container .playlist_list .cursor_list_scroll{
@@ -129,12 +142,12 @@
     max-height: 70%;
     padding: 1.5rem;
     background-color: var(--tertiary-bg-color);
-    border-top: 0.2rem solid var(--primary-accent-color);
+    border-top: 0.2rem solid var(--playlist-accent-color);
 }
 
 .copy_picker_title {
     margin-bottom: 1rem;
-    color: var(--primary-accent-color);
+    color: var(--playlist-accent-color);
 }
 
 .player_controls {
@@ -153,9 +166,32 @@
 }
 
 .player_song_name{
-    color: var(--primary-accent-color);
+    color: var(--song-name-accent-color);
     font-size: 1.5rem;
 }
 .player_artist_name{
     color: grey;
+}
+
+.visualizer_area {
+    flex: 1;              /* takes all the space left above the group */
+    min-height: 0;
+    display: flex;
+    align-items: center;  /* vertical centering */
+    justify-content: center;
+}
+
+.player_group {
+    flex-shrink: 0;
+    margin-bottom: 3rem;
+}
+
+.now_playing {
+    min-height: 3rem;     /* two text lines: reserved even when nothing plays */
+}
+
+.now_playing > div {
+    white-space: nowrap;  /* a long title gets "..." instead of wrapping */
+    overflow: hidden;
+    text-overflow: ellipsis;
 }

@@ -3,8 +3,8 @@
   top: 0;
   left: 0;
   width: 1.5rem;
-  height: 2rem;
-  color: var(--primary-accent-color);
+  height: 1.5rem;
+  color: var(--list-accent-color);
   transition: transform 0.05s ease-out;
 }
 
@@ -22,7 +22,7 @@
     overflow-y: auto;
     overflow-x: hidden;
     scrollbar-width: thin;
-    scrollbar-color: var(--primary-accent-color) transparent;
+    scrollbar-color: var(--list-accent-color) transparent;
 }
 
 .cursor_list_inner{

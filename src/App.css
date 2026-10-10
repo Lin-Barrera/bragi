@@ -28,8 +28,16 @@
   --primary-bg-color: #25252B;
   --secondary-bg-color: #1c1c20;
   --tertiary-bg-color: #141418;
-  --primary-accent-color: #ffc400;
   --text-color: #ffffff;
+
+  --title-accent-color: #ffc400;
+  --playlist-accent-color: #ffc400;
+  --songs-accent-color: #ffc400;
+  --song-name-accent-color: #ffc400;
+  --progress-accent-color: #ffc400;
+  --buttons-accent-color: #ffc400;
+  --visualizer-accent-color: #ffc400;
+  --settings-side-accent-color: #ffc400;
 }
 html, body, #root {
   margin: 0;
