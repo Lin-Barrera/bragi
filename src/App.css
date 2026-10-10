@@ -30,14 +30,14 @@
   --tertiary-bg-color: #141418;
   --text-color: #ffffff;
 
-  --title-accent-color: #ffc400;
-  --playlist-accent-color: #ffc400;
-  --songs-accent-color: #ffc400;
-  --song-name-accent-color: #ffc400;
-  --progress-accent-color: #ffc400;
-  --buttons-accent-color: #ffc400;
-  --visualizer-accent-color: #ffc400;
-  --settings-side-accent-color: #ffc400;
+  --title-accent-color: #00ff9d;
+  --playlist-accent-color: #00ff9d;
+  --songs-accent-color: #00ff9d;
+  --song-name-accent-color: #00ff9d;
+  --progress-accent-color: #00ff9d;
+  --buttons-accent-color: #00ff9d;
+  --visualizer-accent-color: #00ff9d;
+  --settings-side-accent-color: #00ff9d;
 }
 html, body, #root {
   margin: 0;
