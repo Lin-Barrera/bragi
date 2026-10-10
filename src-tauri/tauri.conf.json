@@ -38,7 +38,7 @@
     "updater": {
       "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDExM0FBM0JFODI2M0FDNjYKUldSbXJHT0N2cU02RVNPQ09hQ29jUW5KZXgyZFlrUWMvSE1kakpMZ2p6QmxHTHZtTFJEOUNIcjEK",
       "endpoints": [
-        "https://github.com/Lin-Barrera/Bragi/releases/latest/download/latest.json"
+        "https://github.com/moonlight-system/Bragi/releases/latest/download/latest.json"
       ]
     }
   }
